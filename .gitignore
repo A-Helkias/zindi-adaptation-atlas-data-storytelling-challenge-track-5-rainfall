@@ -1,6 +1,5 @@
 # Ignorer tous les fichiers .csv dans le dossier data (y compris sous-dossiers)
-/data/**/*.csv
 
-# data/*.csv
+data/*.csv
 
 # data/kenya_phenology_full_export.csv
