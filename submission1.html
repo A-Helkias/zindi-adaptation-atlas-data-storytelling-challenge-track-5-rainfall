@@ -1,0 +1,248 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Zindi - Adaptation Atlas Hackathon Notebook Starter Template - 01</title>
+  <script id="155" type="text/markdown">
+    # Zindi - ${nbTitle}
+  </script>
+  <script id="156" type="application/vnd.observable.javascript">
+    tocOneliner({
+      selector: "h1,h2", // selectors to include (can comma-separate, like "h1,h2,h3")
+      heading :"<b>In this notebook</b>", // heading for ToC
+      delim : '&nbsp;|&nbsp;', // delimiter between links
+      skip: [nbTitle, "Imports"], // text content for headers to exclude
+    })
+  </script>
+  <script id="157" type="text/markdown">
+    # Overview
+  </script>
+  <script id="158" type="text/markdown">
+    *${lipsum({
+      count:1, units: "paragraphs", sentenceLowerBound:3, sentenceUpperBound: 15, paragraphLowerBound: 4, paragraphUpperBound: 4})
+    }*
+  </script>
+  <script id="159" type="text/markdown">
+    # Question 1
+  </script>
+  <script id="529" type="text/markdown">
+    **When does the rainy season start, and what is the typical length and year-to-year variability of the length of growing period (LGP) across counties?**
+
+  </script>
+  <script id="588" type="application/vnd.observable.javascript" pinned="">
+
+    addTooltips(
+      Plot.plot({
+        width: 1100,
+        height: Math.ceil(years.length / ncols) * 220,
+        projection: {
+          type: "mercator",
+          domain: { type: "FeatureCollection", features: kenya_adm1 },
+          inset: 6
+        },
+        fx: { padding: 0.03 },
+        fy: { padding: 0.06 },
+        color: {
+          type: "linear",
+          range: [
+            "#019875FF", "#99B898FF", "#FECEA8FF",
+            "#FF847CFF", "#E84A5FFF", "#d67c7c", "#c94f4f"
+          ],
+          domain: [60, 220],
+          label: "Start of the rains (day of the year)",
+          legend: true,
+          unknown: "#111"
+        },
+        style: {
+          background: "#fafafa",
+          fontFamily: "Inter, sans-serif",
+          fontSize: 11
+        },
+        marks: [
+          // 🌧️ Couche principale avec tooltips
+          Plot.geo(features_sos_ByYear, {
+            fx: d => fxIndex_sos(d.properties.year),
+            fy: d => fyIndex_sos(d.properties.year),
+            fill: d => value.get(`${d.properties.year}|${d.properties.admin1_name}`),
+            stroke: "#f5f5f5",
+            strokeWidth: 0.6,
+            // 🏷️ Texte du tooltip personnalisé
+            title: d => {
+              const val = value.get(`${d.properties.year}|${d.properties.admin1_name}`);
+              return `${d.properties.admin1_name}
+    Year: ${d.properties.year}
+    Start Of Season (DOY): ${val ? val : "N/A"}`;
+            }
+          }),
+
+          // Année affichée dans chaque facette
+          Plot.text(years, {
+            fx: y => fxIndex_sos(y),
+            fy: y => fyIndex_sos(y),
+            text: y => y,
+            frameAnchor: "top-left",
+            dx: 10,
+            dy: 10,
+            fontSize: 13,
+            fill: "#111",
+            fontWeight: 600
+          }),
+
+          // Cadre discret
+          Plot.frame({stroke: "#ddd"})
+        ]
+      })
+    );
+
+  </script>
+  <script id="164" type="text/markdown">
+    # Question 2
+  </script>
+  <script id="165" type="text/markdown">
+    *${lipsum({
+      count:1, units: "paragraphs", sentenceLowerBound:3, sentenceUpperBound: 15, paragraphLowerBound: 4, paragraphUpperBound: 4})
+    }*
+  </script>
+  <script id="166" type="text/markdown">
+    # Question 3
+  </script>
+  <script id="167" type="text/markdown">
+    *${lipsum({
+      count:1, units: "paragraphs", sentenceLowerBound:3, sentenceUpperBound: 15, paragraphLowerBound: 4, paragraphUpperBound: 4})
+    }*
+  </script>
+  <script id="168" type="text/markdown">
+    # Conclusion
+  </script>
+  <script id="169" type="text/markdown">
+    # Appendix
+    This section is all the underlying code and variables to power the notebook
+  </script>
+  <script id="481" type="application/vnd.observable.javascript" pinned="">
+    nbTitle = "Adaptation Atlas Hackathon Notebook Starter Template"
+  </script>
+  <script id="171" type="text/markdown">
+    ## Imports
+  </script>
+  <script id="508" type="application/vnd.observable.javascript">
+    lipsum = require('https://bundle.run/lorem-ipsum@1.0.6')
+  </script>
+  <script id="172" type="application/vnd.observable.javascript">
+    import {tocOneliner} from "8a953dc1cde63a86"
+  </script>
+  <script id="517" type="application/vnd.observable.javascript" pinned="">
+    import {phenology_db, admin_boundaries} from "b2a8f20822affaca"
+  </script>
+  <script id="494" type="application/vnd.observable.javascript">
+    // import {phenology_db, hazard_db, watershed_boundaries} from "b2a8f20822affaca"
+  </script>
+  <script id="500" type="application/vnd.observable.javascript">
+    Plot = require("@observablehq/plot@0.6")
+  </script>
+  <script id="505" type="application/vnd.observable.javascript">
+    topojson = require("topojson-client@3")
+  </script>
+  <script id="520" type="application/vnd.observable.javascript" pinned="">
+    import {Inputs} from "@observablehq/inputs"
+  </script>
+  <script id="522" type="application/vnd.observable.javascript" pinned="">
+    data_sos = await phenology_db.query(`
+      SELECT  
+        season_yr AS year,
+        admin1_name AS county,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY DATE_PART('doy', "DER.sos")) AS sos_doy_median
+      FROM kenya_phenology
+      WHERE season_num = 1
+        AND "DER.sos" IS NOT NULL
+        AND admin1_name IS NOT NULL
+      GROUP BY season_yr, admin1_name
+      ORDER BY admin1_name, season_yr;
+    `)
+
+  </script>
+  <script id="553" type="application/vnd.observable.javascript" pinned="">
+    kenya_adm1 = admin_boundaries.adm1.features.filter(
+      f => f.properties.admin0_name === "Kenya"
+    )
+  </script>
+  <script id="547" type="application/vnd.observable.javascript" pinned="">
+    years = Array.from(new Set(data_sos.map(d => d.year))).sort();
+
+  </script>
+  <script id="550" type="application/vnd.observable.javascript" pinned="">
+    value = new Map(
+      data_sos.map(d => [`${d.year}|${d.county}`, +d.sos_doy_median])
+    );
+  </script>
+  <script id="555" type="application/vnd.observable.javascript" pinned="">
+    features_sos_ByYear = years.flatMap(year =>
+      kenya_adm1.map(f => ({
+        type: "Feature",
+        geometry: f.geometry,
+        properties: { ...f.properties, year }
+      }))
+    );
+  </script>
+  <script id="557" type="application/vnd.observable.javascript" pinned="">
+    ncols = 6;
+  </script>
+  <script id="559" type="application/vnd.observable.javascript" pinned="">
+    idx_sos = new Map(years.map((y, i) => [y, i]));
+  </script>
+  <script id="561" type="application/vnd.observable.javascript" pinned="">
+    fxIndex_sos = y => idx_sos.get(y) % ncols;
+  </script>
+  <script id="565" type="application/vnd.observable.javascript" pinned="">
+    fyIndex_sos = y => Math.floor(idx_sos.get(y) / ncols);
+  </script>
+  <script id="590" type="application/vnd.observable.javascript" pinned="">
+    import {addTooltips} from "@mkfreeman/plot-tooltip"
+  </script>
+  <script id="174" type="text/markdown">
+    ### Default Adaptation Atlas Styling
+    This can be found [here](https://observablehq.com/d/8a953dc1cde63a86) to be modified and adjusted
+  </script>
+  <script id="175" type="application/vnd.observable.javascript">
+    import {atlas_stylesheet} from "8a953dc1cde63a86"
+  </script>
+  <script id="176" type="application/vnd.observable.javascript">
+    atlas_stylesheet
+  </script>
+  <script id="177" type="text/markdown">
+    ### Adaptation Atlas Boundaries
+  </script>
+  <script id="147" type="text/markdown">
+    ---------------------------
+  </script>
+  <script id="5" type="application/vnd.observable.javascript" pinned="">
+    // import {exposure_db, hazard_db, phenology_db, admin_boundaries, watershed_boundaries} from "b2a8f20822affaca"
+
+    // import {phenology_db, hazard_db, phenology_db, admin_boundaries, watershed_boundaries} from "b2a8f20822affaca"
+
+  </script>
+  <script id="95" type="application/vnd.observable.javascript" pinned="">
+    all_data = await phenology_db.query(`
+      SELECT * 
+      FROM kenya_phenology;
+    `);
+  </script>
+  <script id="110" type="application/vnd.observable.javascript" pinned="">
+    by_county = aq.from(all_data);
+  </script>
+  <script id="583" type="application/vnd.observable.javascript" pinned="">
+    csv = '\uFEFF' + by_county.toCSV(); // ajout du BOM pour compatibilité Excel
+  </script>
+  <script id="586" type="application/vnd.observable.javascript" pinned="">
+    {
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+
+      // 6️⃣ Créer le lien de téléchargement
+      const url = URL.createObjectURL(blob);
+
+      // 7️⃣ Retourner le bouton pour télécharger le CSV
+      return html`
+        <a href=${url} download="kenya_phenology_full_export.csv">
+          <button>⬇️ Export Full CSV</button>
+        </a>
+      `;
+    }
+  </script>
+</notebook>

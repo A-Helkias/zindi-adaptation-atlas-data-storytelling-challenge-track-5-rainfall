@@ -1,0 +1,295 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Atlas Hackathon Developer Guide</title>
+  <script id="207" type="text/html">
+    <h1 style="display: none;">${nbTitle}</h1>
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
+        <img src="https://cdn.sanity.io/images/gukr2buh/production/1925fe1aa82b5df95768c25be779e211d54ee36c-291x45.svg" alt="Logo 2" width="250">
+        <img 
+          src="https://adaptationatlas.cgiar.org/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2Fgukr2buh%2Fproduction%2Fca637252a709e0d203381bbe4c0aa04e9a62d4c1-1200x628.png&w=1080&q=75" alt="Alliance Bioversity and CIAT Logo" width="300">
+        <img src="https://adaptationatlas.cgiar.org/_next/image?url=https%3A%2F%2Fcdn.sanity.io%2Fimages%2Fgukr2buh%2Fproduction%2F200812d9aa443f2170f4d090efdd1eeb8c1fb6d6-1200x628.png&w=1080&q=75" alt="CGIAR logo" width="300">
+      </div>
+
+      <img 
+        src="https://cdn.sanity.io/images/gukr2buh/production/dfd85fa0bf8508e6c84ffc2ad6eefec1bb06fe58-704x501.svg" 
+        alt="Main SVG" 
+        style="width: 600px; height: auto;"
+      >
+    </div>
+  </script>
+  <script id="27" type="application/vnd.observable.javascript">
+    tocOneliner({skip: [nbTitle]})
+  </script>
+  <script id="149" type="text/markdown">
+    # Suggested Structure for Your Observable Notebook
+
+    When creating your project, think of it as telling a story with data. We recommend following this general arc:
+
+    1. **Introduction**
+
+       * Briefly set the stage: What’s the topic? Why does it matter?
+       * Provide any relevant context so the reader can follow along without prior knowledge.
+
+    2. **Question Sections**
+
+       * Organize your notebook into sections that address specific questions or subtopics.
+       * Use visuals and text together to explain insights clearly.
+
+    3. **Conclusion**
+
+       * Summarize your key findings.
+       * Reflect on any limitations or next steps.
+
+    4. **Methods & Sources**
+
+       * Cite all data sources used in the challenge.
+       * Include links to code (e.g., GitHub, Google Colab) used for analysis or data preparation.
+       * Mention any processing, cleaning, or transformation steps.
+
+  </script>
+  <script id="85" type="text/markdown">
+    # Datasets
+
+    These datasets are required in the sense that they form the official data resources for this hackathon. You don’t need to use all of them in every submission, but if your project requires certain data (e.g., administrative boundaries), you should use the datasets provided here. This ensures consistency across submissions and makes your results easier to compare and evaluate.
+  </script>
+  <script id="44" type="text/markdown">
+    ## Boundaries
+    These are useful for map based visualizations and providing insights for specific regions. The boundary data can be found in simplified, visualization ready format within the [notebook template](https://observablehq.com/d/41ca4f33b9a5a2ff).
+
+    ### Administrative Boundaries
+    The Administrative boundaries in the Adaptation Atlas are based on [GAUL 2024](https://data.apps.fao.org/catalog/dataset/60b23906-f21a-49ef-8424-f3645e70264e).
+
+    This data comes in 3 levels: 
+    - Admin 0: Country boundaries
+    - Admin 1: Sub-national boundaries at the first level (often provinces, departments, or states).
+    - Admin 2: Second level sub-national boundaries (districts, municipalities, or equivalent).
+
+    We provide two main versions:
+    1. **Analysis-Ready Boundaries** – These handle disputed territories by assigning the disputed area to each country that claims it. This creates overlapping polygons but ensures that countries are represented as they see themselves. Use this version for any **analysis tasks** (e.g., raster extractions, spatial statistics).
+    2. **Simplified Boundaries** – A much lower-resolution version designed for **visualization purposes** with a much smaller file size.
+
+    ### Watershed Boundaries
+    The Adaptation Atlas uses watershed boundaries based on the [WMO Basins and Sub-Basins (WMOBB) dataset](https://grdc.bafg.de/products/basin_layers/wmo_basins/).
+
+    This dataset also comes in two versions as well - one for analysis and one for visualization. It only contains one level of watersheds.
+  </script>
+  <script id="37" type="text/markdown">
+    # Helpful Imports and Styling
+    These are already loaded into the [default notebook template](https://observablehq.com/d/41ca4f33b9a5a2ff) for you to use.
+
+  </script>
+  <script id="173" type="text/markdown">
+    Import stylesheet with:
+    ```js
+    import {atlas_stylesheet} from "8a953dc1cde63a86"
+    ```
+  </script>
+  <script id="17" type="application/vnd.observable.javascript">
+    atlas_stylesheet = html`<style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+
+    :root {
+      --atlasGreen: #2E7636;
+    }
+
+    figure {
+      padding-top: 20px;
+    }
+
+    /* body text and headings */
+    body {
+      line-height: 1.6;
+      font-size: 1rem;
+      font-family: "IBM Plex Sans", "Source Serif Pro";
+    }
+
+    figure { 
+      padding-top: 20px; 
+    }
+
+    h1 {
+      font-size: 2em;
+      font-weight: 700;
+    }
+
+
+    h2 {
+      font-weight: 700;
+      padding-top: 30px;
+    }
+
+    h3 {
+      font-weight: 700;
+      padding-top: 20px;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+
+    strong {
+      font-weight: 600;
+    }
+
+    /* Style links */
+    a[href] {
+      color: var(--atlasGreen);
+      text-decoration: none;
+    }
+
+    a[href]:hover,
+    a[href]:active {
+      color: var(--atlasGreen);
+      text-decoration: underline;
+    }
+
+    form[class^="inputs-"] {
+      flex-wrap: wrap !important;
+    }
+
+    form[class^="inputs-"]>label {
+      padding: 8px 0 !important;
+      font-family: "IBM Plex Sans";
+      font-size: 12px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #333;
+      width: 100% !important;
+    }
+
+    form[class^="inputs-"] select {
+      border: 0;
+      height: 40px;
+      font-family: "IBM Plex Sans";
+      font-size: 14px;
+    }
+
+    form[class^="inputs-"] div {
+      font-family: "IBM Plex Sans";
+      font-size: 14px;
+      padding: 12px 0;
+    }
+
+    [class^="inputs-"] input {
+      accent-color:var(--atlasGreen);
+    }
+
+    form[class^="inputs-"] button {
+      background: #FFFFFF;
+      border: 1px solid black;
+      padding: 10px 20px;
+    }
+
+    form[class^="inputs-"] button:hover {
+      background: #EFEFEF;
+    }
+
+    form[class^="inputs-"] button:active {
+      background: #DCDCDC;
+    }
+    </style>`
+  </script>
+  <script id="180" type="text/markdown">
+    Import table of contents with:
+    ```js
+    import {tocOneliner} from "8a953dc1cde63a86"
+    ```
+  </script>
+  <script id="25" type="application/vnd.observable.javascript">
+    function tocOneliner({
+      selector = "h1", // selectors to include (can comma-separate, like "h1,h2,h3")
+      heading = "<b>In this notebook</b>", // heading for ToC
+      delim = '&nbsp;|&nbsp;', // delimiter between links
+      skip = [], // text content for headers to exclude
+    } = {}) {
+      // return a one-liner table of contents
+      // allow for skips
+      // modified from https://observablehq.com/@mbostock/toc
+
+      return Generators.observe(notify => {
+        let headings = [];
+
+        function observed() {
+          let h = Array.from(document.querySelectorAll(selector));
+          h = h.filter((d) => !skip.includes(d.textContent))
+          if (h.length !== headings.length || h.some((h, i) => headings[i] !== h)) {
+            notify(html`${heading}<br>${Array.from(headings = h, (h, i) => {
+              const end = i === headings.length - 1
+              return Object.assign(
+                html`<a href=#${h.id}>${DOM.text(h.textContent)}</a>${end ? '' : delim}`,
+                {onclick: e => (e.preventDefault(), h.scrollIntoView())}
+              );
+            })}`);
+          }
+        }
+
+        const observer = new MutationObserver(observed);
+        observer.observe(document.body, {childList: true, subtree: true});
+        observed();
+        return () => observer.disconnect();
+      });
+    }
+  </script>
+  <script id="125" type="text/markdown">
+    # Export Notebooks to HTML with Notebook Kit
+
+    The new [Observable Notebook Kit](https://observablehq.com/notebook-kit/kit) module allows for Observable Notebooks to be converted to a standalone HTML file for submission. Notebooks could also be developed using Notebook Kit and Observable Notebooks V2 if preferred.
+
+    To convert an Observable Notebook, such as this one, to a static html:
+    1. Have Node, Deno, or Bun a similar JavaScript runtime installed on your local device. This has been tested with Bun 1.2, Deno 2.2, and Node.js 24.
+    3. Install the Notebook Kit tool
+       ```sh
+       npm add @observablehq/notebook-kit
+       # or
+       deno add npm:@observablehq/notebook-kit@latest
+       # or
+       bun install @observablehq/notebook-kit@latest
+       ```
+    4. Run the CLI notebook-kit download command and write the output to a file.
+       ```sh
+       notebook-kit download \
+       "https://observablehq.com/d/8a953dc1cde63a86" \
+       > notebook.html
+       # or
+       deno run --allow-net \
+        npm:@observablehq/notebook-kit download \
+        'https://observablehq.com/d/8a953dc1cde63a86' \
+        > notebook.html
+       # or
+       bunx notebooks download \
+       'https://observablehq.com/d/8a953dc1cde63a86' \
+        > notebook.html
+       ```
+  </script>
+  <script id="48" type="text/markdown">
+    # Additional Resources
+    - [**Notebook Starter Template**](https://observablehq.com/d/41ca4f33b9a5a2ff)
+    - [**Existing Adaptation Atlas Notebooks**](https://observablehq.com/collection/@adaptationatlas/data-explorations)
+    - [**Example:** Use Python and Google Earth Engine to process soil data](https://colab.research.google.com/drive/1Cz8G1uUn6pdvadVjq9ikppyFeU36uE-3?usp=sharing)
+    - [Adaptation Atlas Data Guide]()
+    - [Atlas Data FAQ]()
+    - [Observable JS Documentation](https://observablehq.com/documentation/cells/observable-javascript)
+    - [Observable JS vs vanilla Javascript](https://observablehq.com/@observablehq/observable-javascript)
+    - [Data wrangling in JS vs R, Python, and SQL](https://observablehq.com/@observablehq/data-wrangling-translations)
+    - [Adaptation Atlas ObservableHQ](https://observablehq.com/@adaptationatlas)
+    - [Zindi Challenge Link]()
+  </script>
+  <script id="187" type="text/markdown">
+    ### Some nice examples to get some ideas flowing
+    - https://observablehq.com/@tomlarkworthy/notebooks2021
+    - https://observablehq.com/collection/@observablehq/instagram-shares
+    - https://observablehq.com/@yuqiliao/enso-affects-vietnam?collection=@observablehq/adb-visualizing-climate-change-resilience-challenge-subm
+    - https://observablehq.com/@irenedelatorre/prototypes-new-cases-of-coronavirus?collection=@irenedelatorre/d3-js
+    - https://observablehq.com/@periscopic/adb-visualizing-climate-change-resilience-challenge?collection=@observablehq/adb-visualizing-climate-change-resilience-challenge-subm
+    - https://observablehq.com/@jake-low/how-well-does-population-density-predict-u-s-voting-outcome
+    - https://observablehq.com/@irenedelatorre/only-6-of-the-nobel-prize-winners-are-women?collection=@irenedelatorre/d3-js
+  </script>
+  <script id="42" type="text/markdown">
+    # Appendix
+    This section is all the underlying code and variables to power the notebook
+  </script>
+  <script id="29" type="application/vnd.observable.javascript">
+    nbTitle = "Atlas Hackathon Developer Guide"
+  </script>
+</notebook>
